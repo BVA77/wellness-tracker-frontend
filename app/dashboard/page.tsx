@@ -1,6 +1,10 @@
 'use client'
 
-import { useState } from "react";
+import { useState } from "react"
+import { Habit } from "./habit.interface"
+import { useForm } from "react-hook-form";
+import { habitSchema, HabitSchema } from "./habit.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function Dashboard() {
 
@@ -9,12 +13,6 @@ export default function Dashboard() {
     { id: 2, name: 'Read', frequency: 'Daily' },
     { id: 3, name: 'Meditate', frequency: 'Daily' },
   ];
-
-  interface Habit {
-    id: number;
-    name: string;
-    frequency: string;
-  }
 
   const habitFormInitialState: Habit = {
     id: 0,
@@ -25,10 +23,16 @@ export default function Dashboard() {
   const [habitPanelOpen, setHabitPanelOpen] = useState(false);
   const [habitFormState, setHabitFormState] = useState(habitFormInitialState);
 
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<HabitSchema>({ resolver: zodResolver(habitSchema) });
+
+  console.log('Form errors:', errors);
+
   const addHabit = () => {
     // Logic to add a new habit
     console.log('Add habit clicked');
     setHabitFormState(habitFormInitialState);
+    setValue("name", habitFormInitialState.name);
+    setValue("frequency", habitFormInitialState.frequency);
     setHabitPanelOpen(true);
   };
 
@@ -39,6 +43,8 @@ export default function Dashboard() {
     const habitToEdit = habits.find(h => h.id === habitId);
     if (habitToEdit) {
       setHabitFormState(habitToEdit);
+      setValue("name", habitToEdit.name);
+      setValue("frequency", habitToEdit.frequency);
     }
     setHabitPanelOpen(true);
   }
@@ -76,9 +82,11 @@ export default function Dashboard() {
                     <div className="bg-white p-2 rounded-lg shadow ml-4">
                       <h2 className="text-lg font-semibold mb-2">Habit Panel</h2>
                       <p>This is where you can add or edit habits.</p>
-                      <input type="text" placeholder="Habit name" className="border p-2 rounded w-full mb-2" value={habitFormState.name} onChange={(e) => setHabitFormState({ ...habitFormState, name: e.target.value })} />
-                      <input type="text" placeholder="Frequency" className="border p-2 rounded w-full mb-2" value={habitFormState.frequency} onChange={(e) => setHabitFormState({ ...habitFormState, frequency: e.target.value })} />
-                      <button className="mt-2 bg-blue-500 text-white p-2 rounded" onClick={saveHabit}>Save</button>
+                      <form action="" onSubmit={handleSubmit(saveHabit)}>
+                        <input type="text" placeholder="Habit name" className="border p-2 rounded w-full mb-2" {...register("name")} />
+                        <input type="text" placeholder="Frequency" className="border p-2 rounded w-full mb-2" value={habitFormState.frequency} onChange={(e) => setHabitFormState({ ...habitFormState, frequency: e.target.value })} />
+                        <button className="mt-2 bg-blue-500 text-white p-2 rounded" type="submit">Save</button>
+                      </form>
                     </div>
                   )
                 }
